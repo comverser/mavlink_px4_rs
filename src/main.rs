@@ -52,6 +52,7 @@ fn main() {
     });
 
     println!("Listening for MAVLink messages...");
+    println!("(Press Ctrl+C if nothing appears after 10 seconds)");
     let mut message_count = 0;
 
     loop {
