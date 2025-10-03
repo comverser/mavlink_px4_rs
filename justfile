@@ -1,23 +1,15 @@
-# Show available commands
-default:
-    @just --list --unsorted
+# Default recipe - runs interactive menu
+default: run-interactive
 
-# Run with custom connection string
-run connection:
-    cargo run -- {{connection}}
-
-# Run with custom connection and message filter
-run-filter connection messages:
-    cargo run -- {{connection}} --messages {{messages}}
-
-# Interactive: Select connection type and optional message filter
-i:
+# Run with interactive menu for connection and message selection
+run-interactive:
     #!/usr/bin/env bash
     echo "Select connection type:"
-    echo "1) PX4 SITL (udpin:0.0.0.0:14540)"
+    echo "1) PX4 SITL (udpin:0.0.0.0:14540) [default]"
     echo "2) QGC default (udpin:0.0.0.0:14550)"
     echo "3) Custom"
-    read -p "Choice [1-3]: " choice
+    read -p "Choice [1-3] (press Enter for default): " choice
+    choice=${choice:-1}
 
     case $choice in
         1) connection="udpin:0.0.0.0:14540" ;;
@@ -31,12 +23,13 @@ i:
     echo "1) All messages"
     echo "2) HEARTBEAT only"
     echo "3) ATTITUDE only"
-    echo "4) GLOBAL_POSITION_INT only"
+    echo "4) GLOBAL_POSITION_INT only [default]"
     echo "5) GPS_RAW_INT only"
     echo "6) SYS_STATUS only"
     echo "7) PARAM_VALUE only"
     echo "8) Custom"
-    read -p "Choice [1-8]: " msg_choice
+    read -p "Choice [1-8] (press Enter for default): " msg_choice
+    msg_choice=${msg_choice:-4}
 
     case $msg_choice in
         1) cargo run -- "$connection" ;;
@@ -52,4 +45,3 @@ i:
             ;;
         *) echo "Invalid choice"; exit 1 ;;
     esac
-

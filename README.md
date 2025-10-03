@@ -5,9 +5,6 @@ A MAVLink message viewer for PX4 written in Rust.
 ## Usage
 
 ```bash
-# See available commands
+# Interactive mode
 just
-
-# Interactive mode (easiest)
-just i
 ```
