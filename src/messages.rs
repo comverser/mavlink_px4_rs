@@ -1,10 +1,10 @@
 use crate::connection::MavConn;
 use mavlink::{
+    MavHeader,
     ardupilotmega::{
-        MavAutopilot, MavMessage, MavModeFlag, MavState, MavType, HEARTBEAT_DATA,
+        HEARTBEAT_DATA, MavAutopilot, MavMessage, MavModeFlag, MavState, MavType,
         PARAM_REQUEST_LIST_DATA, REQUEST_DATA_STREAM_DATA,
     },
-    MavHeader,
 };
 use std::{thread, time::Duration};
 
@@ -23,13 +23,14 @@ pub fn initialize(vehicle: &MavConn) {
 /// Start background heartbeat thread
 pub fn start_heartbeat(vehicle: &MavConn) {
     let vehicle = vehicle.clone();
-    thread::spawn(move || loop {
-        send_heartbeat(&vehicle);
-        thread::sleep(HEARTBEAT_INTERVAL);
+    thread::spawn(move || {
+        loop {
+            send_heartbeat(&vehicle);
+            thread::sleep(HEARTBEAT_INTERVAL);
+        }
     });
 }
 
-// Message sending
 fn send_message(vehicle: &MavConn, msg: &MavMessage) {
     if let Err(e) = vehicle.send(&MavHeader::default(), msg) {
         eprintln!("Send failed: {e}");
@@ -41,8 +42,6 @@ fn send_heartbeat(vehicle: &MavConn) {
         eprintln!("Heartbeat failed: {e:?}");
     }
 }
-
-// Message constructors
 fn create_heartbeat() -> MavMessage {
     MavMessage::HEARTBEAT(HEARTBEAT_DATA {
         custom_mode: 0,
