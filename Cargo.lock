@@ -131,7 +131,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mavlink_px4_rs"
+name = "mavlink_px4_rs_hello"
 version = "0.1.0"
 dependencies = [
  "mavlink",
