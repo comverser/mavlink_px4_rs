@@ -1,5 +1,4 @@
-use crate::connection::MavConn;
-use crate::display;
+use crate::{connection::MavConn, display};
 use mavlink::error::MessageReadError;
 use std::{io::ErrorKind, thread, time::Duration};
 
@@ -15,10 +14,10 @@ pub fn run(vehicle: &MavConn) {
                 thread::sleep(POLL_INTERVAL);
             }
             Err(MessageReadError::Io(e)) => {
-                eprintln!("✗ Connection error: {e}");
+                eprintln!("\n✗ Connection lost: {e}");
                 break;
             }
-            Err(_) => {} // Ignore parser errors
+            Err(_) => {} // Skip malformed messages
         }
     }
 }
