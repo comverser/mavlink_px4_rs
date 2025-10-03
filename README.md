@@ -1,10 +1,11 @@
 # mavlink_px4_rs_hello
 
-A MAVLink message viewer for PX4 written in Rust.
+## Requirements
+
+- [Ubuntu](https://ubuntu.com/)
+- [just](https://github.com/casey/just) - Command runner (alternative to make)
+- [Rust](https://www.rust-lang.org/) toolchain (cargo, rustc)
 
 ## Usage
 
-```bash
-# Interactive mode
-just
-```
+See [justfile](justfile) for all available recipes and usage examples.
