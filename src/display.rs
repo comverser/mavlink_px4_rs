@@ -4,8 +4,20 @@ use mavlink::{
     },
     MavHeader,
 };
+use std::collections::HashSet;
 
-pub fn show(header: &MavHeader, msg: &MavMessage) {
+pub fn show(header: &MavHeader, msg: &MavMessage, filter: &Option<HashSet<String>>) {
+    let msg_type = format!("{msg:?}")
+        .split('(')
+        .next()
+        .unwrap_or("UNKNOWN")
+        .to_string();
+
+    // If filter exists and message is not in filter, skip it
+    if let Some(allowed_messages) = filter && !allowed_messages.contains(&msg_type) {
+        return;
+    }
+
     match msg {
         MavMessage::HEARTBEAT(data) => heartbeat(header, data),
         MavMessage::ATTITUDE(data) => attitude(data),
