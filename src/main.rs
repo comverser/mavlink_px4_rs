@@ -2,9 +2,10 @@ mod connection;
 mod display;
 mod messages;
 mod receiver;
+mod utils;
 
 use clap::Parser;
-use std::{collections::HashSet, process};
+use std::process;
 
 #[derive(Parser)]
 struct Args {
@@ -19,16 +20,12 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let filter = build_message_filter(args.messages);
+    let filter = utils::build_message_filter(args.messages);
     let vehicle = connect_or_exit(&args.connection);
 
     messages::initialize(&vehicle);
     messages::start_heartbeat(&vehicle);
     receiver::run(&vehicle, filter);
-}
-
-fn build_message_filter(messages: Option<Vec<String>>) -> Option<HashSet<String>> {
-    messages.map(|msgs| msgs.iter().map(|s| s.trim().to_uppercase()).collect())
 }
 
 fn connect_or_exit(connection_string: &str) -> connection::MavConn {

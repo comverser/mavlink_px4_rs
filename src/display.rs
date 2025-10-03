@@ -1,3 +1,4 @@
+use crate::utils;
 use mavlink::{
     ardupilotmega::{
         MavMessage, ATTITUDE_DATA, GLOBAL_POSITION_INT_DATA, HEARTBEAT_DATA, PARAM_VALUE_DATA,
@@ -30,19 +31,10 @@ fn should_display(msg: &MavMessage, filter: &Option<HashSet<String>>) -> bool {
         return true;
     };
 
-    let msg_type = extract_message_type(msg);
+    let msg_type = utils::extract_message_type(msg);
     allowed_messages.contains(&msg_type)
 }
 
-pub fn extract_message_type(msg: &MavMessage) -> String {
-    format!("{msg:?}")
-        .split('(')
-        .next()
-        .unwrap_or("UNKNOWN")
-        .to_string()
-}
-
-// Message formatters
 fn print_heartbeat(header: &MavHeader, data: &HEARTBEAT_DATA, freq_str: &str) {
     println!(
         "HEARTBEAT [{}/{}] type={:?}, autopilot={:?}, state={:?}{}",
@@ -78,7 +70,7 @@ fn print_parameter(data: &PARAM_VALUE_DATA, freq_str: &str) {
 }
 
 fn print_generic(header: &MavHeader, msg: &MavMessage, freq_str: &str) {
-    let msg_type = extract_message_type(msg);
+    let msg_type = utils::extract_message_type(msg);
     println!(
         "{msg_type} [{}/{}]{}",
         header.system_id, header.component_id, freq_str
