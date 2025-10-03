@@ -1,5 +1,5 @@
 [package]
-name = "mavlink_rust_hello"
+name = "mavlink_px4_rs"
 version = "0.1.0"
 edition = "2024"
 
