@@ -6,35 +6,47 @@ use mavlink::{
 };
 use std::collections::HashSet;
 
+/// Display a MAVLink message with optional filtering
 pub fn show(header: &MavHeader, msg: &MavMessage, filter: &Option<HashSet<String>>) {
-    let msg_type = format!("{msg:?}")
-        .split('(')
-        .next()
-        .unwrap_or("UNKNOWN")
-        .to_string();
-
-    // If filter exists and message is not in filter, skip it
-    if let Some(allowed_messages) = filter && !allowed_messages.contains(&msg_type) {
+    if !should_display(msg, filter) {
         return;
     }
 
     match msg {
-        MavMessage::HEARTBEAT(data) => heartbeat(header, data),
-        MavMessage::ATTITUDE(data) => attitude(data),
-        MavMessage::GLOBAL_POSITION_INT(data) => position(data),
-        MavMessage::PARAM_VALUE(data) => parameter(data),
-        _ => other(header, msg),
+        MavMessage::HEARTBEAT(data) => print_heartbeat(header, data),
+        MavMessage::ATTITUDE(data) => print_attitude(data),
+        MavMessage::GLOBAL_POSITION_INT(data) => print_position(data),
+        MavMessage::PARAM_VALUE(data) => print_parameter(data),
+        _ => print_generic(header, msg),
     }
 }
 
-fn heartbeat(header: &MavHeader, data: &HEARTBEAT_DATA) {
+fn should_display(msg: &MavMessage, filter: &Option<HashSet<String>>) -> bool {
+    let Some(allowed_messages) = filter else {
+        return true;
+    };
+
+    let msg_type = extract_message_type(msg);
+    allowed_messages.contains(&msg_type)
+}
+
+fn extract_message_type(msg: &MavMessage) -> String {
+    format!("{msg:?}")
+        .split('(')
+        .next()
+        .unwrap_or("UNKNOWN")
+        .to_string()
+}
+
+// Message formatters
+fn print_heartbeat(header: &MavHeader, data: &HEARTBEAT_DATA) {
     println!(
         "HEARTBEAT [{}/{}] type={:?}, autopilot={:?}, state={:?}",
         header.system_id, header.component_id, data.mavtype, data.autopilot, data.system_status
     );
 }
 
-fn attitude(data: &ATTITUDE_DATA) {
+fn print_attitude(data: &ATTITUDE_DATA) {
     println!(
         "ATTITUDE  roll={:>6.2}° pitch={:>6.2}° yaw={:>6.2}°",
         data.roll.to_degrees(),
@@ -43,7 +55,7 @@ fn attitude(data: &ATTITUDE_DATA) {
     );
 }
 
-fn position(data: &GLOBAL_POSITION_INT_DATA) {
+fn print_position(data: &GLOBAL_POSITION_INT_DATA) {
     println!(
         "POSITION  lat={:>10.6} lon={:>10.6} alt={:>7.1}m",
         data.lat as f64 / 1e7,
@@ -52,18 +64,14 @@ fn position(data: &GLOBAL_POSITION_INT_DATA) {
     );
 }
 
-fn parameter(data: &PARAM_VALUE_DATA) {
+fn print_parameter(data: &PARAM_VALUE_DATA) {
     let name = String::from_utf8_lossy(&data.param_id)
         .trim_end_matches('\0')
         .to_string();
     println!("PARAM     {name} = {}", data.param_value);
 }
 
-fn other(header: &MavHeader, msg: &MavMessage) {
-    let msg_type = format!("{msg:?}")
-        .split('(')
-        .next()
-        .unwrap_or("UNKNOWN")
-        .to_string();
+fn print_generic(header: &MavHeader, msg: &MavMessage) {
+    let msg_type = extract_message_type(msg);
     println!("{msg_type} [{}/{}]", header.system_id, header.component_id);
 }

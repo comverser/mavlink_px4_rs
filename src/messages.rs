@@ -8,33 +8,42 @@ use mavlink::{
 };
 use std::{thread, time::Duration};
 
+// MAVLink configuration constants
 const TARGET_SYSTEM: u8 = 1;
 const TARGET_COMPONENT: u8 = 1;
 const STREAM_RATE_HZ: u16 = 10;
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(1);
 
+/// Initialize vehicle connection by requesting parameters and data stream
 pub fn initialize(vehicle: &MavConn) {
-    send(vehicle, &request_parameters());
-    send(vehicle, &request_stream());
+    send_message(vehicle, &create_param_request());
+    send_message(vehicle, &create_stream_request());
 }
 
+/// Start background heartbeat thread
 pub fn start_heartbeat(vehicle: &MavConn) {
     let vehicle = vehicle.clone();
     thread::spawn(move || loop {
-        if let Err(e) = vehicle.send_default(&heartbeat()) {
-            eprintln!("Heartbeat failed: {e:?}");
-        }
+        send_heartbeat(&vehicle);
         thread::sleep(HEARTBEAT_INTERVAL);
     });
 }
 
-fn send(vehicle: &MavConn, msg: &MavMessage) {
+// Message sending
+fn send_message(vehicle: &MavConn, msg: &MavMessage) {
     if let Err(e) = vehicle.send(&MavHeader::default(), msg) {
         eprintln!("Send failed: {e}");
     }
 }
 
-fn heartbeat() -> MavMessage {
+fn send_heartbeat(vehicle: &MavConn) {
+    if let Err(e) = vehicle.send_default(&create_heartbeat()) {
+        eprintln!("Heartbeat failed: {e:?}");
+    }
+}
+
+// Message constructors
+fn create_heartbeat() -> MavMessage {
     MavMessage::HEARTBEAT(HEARTBEAT_DATA {
         custom_mode: 0,
         mavtype: MavType::MAV_TYPE_QUADROTOR,
@@ -45,14 +54,14 @@ fn heartbeat() -> MavMessage {
     })
 }
 
-fn request_parameters() -> MavMessage {
+fn create_param_request() -> MavMessage {
     MavMessage::PARAM_REQUEST_LIST(PARAM_REQUEST_LIST_DATA {
         target_system: TARGET_SYSTEM,
         target_component: TARGET_COMPONENT,
     })
 }
 
-fn request_stream() -> MavMessage {
+fn create_stream_request() -> MavMessage {
     #[allow(deprecated)]
     MavMessage::REQUEST_DATA_STREAM(REQUEST_DATA_STREAM_DATA {
         target_system: TARGET_SYSTEM,
